@@ -2,7 +2,7 @@
 # Usage (from the project folder):  powershell -ExecutionPolicy Bypass -File source/build.ps1 [-Domain https://www.example.com]
 # Assembles source/pages with source/partials, expands image/icon macros, minifies HTML/CSS/JS,
 # adds cache-busting and writes security headers for Netlify / Cloudflare Pages / Vercel / Apache.
-param([string]$Domain = "")
+param([string]$Domain = "", [string]$BasePath = "/skywalkdesigns.in/")
 $ErrorActionPreference = "Stop"
 
 $S   = $PSScriptRoot
@@ -132,7 +132,7 @@ foreach ($f in Get-ChildItem $pagesDir -Recurse -Filter *.html) {
     $raw = $raw.Substring($mm.Length)
   }
   $depth = ($rel.Split('/').Count - 1)
-  $root = if ($meta.root) { $meta.root } else { '../' * $depth }
+  $root = if ($meta.root) { $BasePath } else { '../' * $depth }
   $active = if ($meta.active) { $meta.active } else { '' }
   $pageUrl = if ($rel -eq 'index.html') { '' } else { $rel }
 
@@ -230,7 +230,7 @@ ErrorDocument 404 /404.html
   AddType application/manifest+json .webmanifest
 </IfModule>
 "@
-Write-Text (Join-Path $OUT "site.webmanifest") '{"name":"Skywalk Designs","short_name":"Skywalk","description":"Architecture and interior design studio in Jaipur, Rajasthan.","start_url":"/","display":"standalone","background_color":"#0f1012","theme_color":"#0f1012","icons":[{"src":"assets/brand/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"assets/brand/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'
+Write-Text (Join-Path $OUT "site.webmanifest") '{"name":"Skywalk Designs","short_name":"Skywalk","description":"Architecture and interior design studio in Jaipur, Rajasthan.","start_url":"./","display":"standalone","background_color":"#0f1012","theme_color":"#0f1012","icons":[{"src":"assets/brand/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"assets/brand/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'
 $robots = "User-agent: *`nAllow: /`nDisallow: /404.html`n"
 if ($Domain) {
   $robots += "`nSitemap: $Domain/sitemap.xml`n"
