@@ -1,0 +1,507 @@
+{
+ "contemporary-residence/01-exterior-night": {
+  "w": 2400,
+  "h": 1699,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "contemporary-residence/02-facade-shutters": {
+  "w": 1200,
+  "h": 1611,
+  "ws": [
+   480,
+   960,
+   1200
+  ]
+ },
+ "contemporary-residence/03-living-double-height": {
+  "w": 1200,
+  "h": 800,
+  "ws": [
+   480,
+   960,
+   1200
+  ]
+ },
+ "contemporary-residence/04-staircase-lights": {
+  "w": 1200,
+  "h": 800,
+  "ws": [
+   480,
+   960,
+   1200
+  ]
+ },
+ "contemporary-residence/05-kitchen-jali": {
+  "w": 1200,
+  "h": 800,
+  "ws": [
+   480,
+   960,
+   1200
+  ]
+ },
+ "contemporary-residence/06-jali-console": {
+  "w": 1200,
+  "h": 800,
+  "ws": [
+   480,
+   960,
+   1200
+  ]
+ },
+ "contemporary-residence/07-bedroom": {
+  "w": 1200,
+  "h": 800,
+  "ws": [
+   480,
+   960,
+   1200
+  ]
+ },
+ "contemporary-residence/08-bathroom": {
+  "w": 1200,
+  "h": 800,
+  "ws": [
+   480,
+   960,
+   1200
+  ]
+ },
+ "contemporary-residence/09-living-monochrome": {
+  "w": 960,
+  "h": 531,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "contemporary-residence/10-window-detail": {
+  "w": 738,
+  "h": 990,
+  "ws": [
+   480,
+   738
+  ]
+ },
+ "contemporary-residence/11-clock-detail": {
+  "w": 742,
+  "h": 990,
+  "ws": [
+   480,
+   742
+  ]
+ },
+ "contemporary-residence/12-hooks-detail": {
+  "w": 1600,
+  "h": 2401,
+  "ws": [
+   480,
+   960,
+   1600
+  ]
+ },
+ "allure-catering-studio/01-dining-jali-arch": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/02-dining-hall": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/03-jali-alcove": {
+  "w": 2400,
+  "h": 1829,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/04-jali-corridor": {
+  "w": 2400,
+  "h": 3741,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/05-lounge": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/06-lounge-two": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/07-lounge-three": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/08-meeting-room": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/09-meeting-room-two": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/10-mural-wall": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "allure-catering-studio/11-exterior": {
+  "w": 2400,
+  "h": 1552,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "house-of-festivities/01-drawing-room": {
+  "w": 2400,
+  "h": 1602,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "house-of-festivities/02-drawing-room-two": {
+  "w": 2400,
+  "h": 1601,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "house-of-festivities/03-pooja-room": {
+  "w": 2400,
+  "h": 1600,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "house-of-festivities/04-bedroom": {
+  "w": 2400,
+  "h": 1602,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "house-of-festivities/05-family-lounge": {
+  "w": 2400,
+  "h": 3595,
+  "ws": [
+   480,
+   960,
+   1600,
+   2400
+  ]
+ },
+ "chitrakoot-residence/01-living": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "chitrakoot-residence/02-sofa-detail": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "chitrakoot-residence/03-living-two": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "chitrakoot-residence/04-staircase-sandstone": {
+  "w": 960,
+  "h": 641,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "chitrakoot-residence/05-master-bedroom": {
+  "w": 960,
+  "h": 641,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "chitrakoot-residence/06-kids-bedroom": {
+  "w": 960,
+  "h": 641,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "chitrakoot-residence/07-dressing-room": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "chitrakoot-residence/08-brass-basin": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "fuchsia-boutique/01-storefront-night": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "fuchsia-boutique/02-interior": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "fuchsia-boutique/03-display": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "fuchsia-boutique/04-ceiling": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "fuchsia-boutique/05-racks": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "fuchsia-boutique/06-racks-two": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "fuchsia-boutique/07-detail-hangers": {
+  "w": 960,
+  "h": 640,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "fuchsia-boutique/08-frames-wall": {
+  "w": 960,
+  "h": 641,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "bath-design/01-render-shower": {
+  "w": 960,
+  "h": 718,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "bath-design/02-render-vanity": {
+  "w": 800,
+  "h": 514,
+  "ws": [
+   480,
+   800
+  ]
+ },
+ "bath-design/03-render-wc": {
+  "w": 960,
+  "h": 720,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "bath-design/04-render-wc-two": {
+  "w": 960,
+  "h": 720,
+  "ws": [
+   480,
+   960
+  ]
+ },
+ "studio-works/01-clinic-reception": {
+  "w": 640,
+  "h": 480,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/02-farmhouse": {
+  "w": 640,
+  "h": 560,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/03-stone-facade": {
+  "w": 640,
+  "h": 640,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/04-ent-hospital-facade": {
+  "w": 640,
+  "h": 640,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/05-marble-jaali-foyer": {
+  "w": 640,
+  "h": 505,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/06-mps-auditorium": {
+  "w": 640,
+  "h": 427,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/07-housing-design": {
+  "w": 640,
+  "h": 640,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/08-farmhouse-gazebo": {
+  "w": 640,
+  "h": 560,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/09-courtyard-wall-art": {
+  "w": 640,
+  "h": 494,
+  "ws": [
+   480,
+   640
+  ]
+ },
+ "studio-works/10-bar-stool-prototype": {
+  "w": 480,
+  "h": 600,
+  "ws": [
+   480
+  ]
+ }
+}

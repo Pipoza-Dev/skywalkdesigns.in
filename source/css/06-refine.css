@@ -1,0 +1,76 @@
+/* 06 · refinements: fixed nav, pinned showcase, cursor pill, nudge, photo ribbon, performance */
+
+/* ---------- Navigation: always visible, animated ---------- */
+@keyframes nav-in { from { opacity: 0; transform: translate3d(0, -130%, 0); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) { .nav__bar { animation: nav-in 0.9s var(--ease) 0.1s both; } }
+.nav__bar { transition: height 0.5s var(--ease), max-width 0.6s var(--ease), background 0.45s, border-color 0.45s, box-shadow 0.45s, color 0.45s; }
+.nav.is-scrolled .nav__bar { max-width: 1120px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 22px 50px -22px rgba(15, 16, 18, 0.45); }
+.nav--dark.is-scrolled .nav__bar { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 22px 50px -20px rgba(0, 0, 0, 0.8); }
+.nav.is-hidden { transform: translate3d(0, calc(-100% - 28px), 0); }
+.nav__list.pill-rest + .nav__pill { background: rgba(255, 230, 0, 0.3); }
+.nav--dark .nav__list.pill-rest + .nav__pill { background: rgba(255, 230, 0, 0.16); }
+.nav__link { transition: color 0.3s, transform 0.4s var(--spring); }
+.nav__link:active { transform: scale(0.95); }
+.nav__link[aria-current="page"]::after { display: none; }
+.nav__cta .btn__icon { transition: transform 0.5s var(--spring); }
+@media (hover: hover) { .nav__cta:hover .btn__icon { transform: rotate(-45deg) scale(1.06); } .nav__brand:hover .nav__word b { letter-spacing: 0.24em; } }
+.nav__word b { transition: letter-spacing 0.5s var(--ease); }
+@media (max-width: 1023px) {
+  :root { --nav-h: 60px; }
+  .nav__bar { padding-right: 0.35rem; }
+  .nav__burger { width: 46px; height: 46px; }
+  .nav__burger span:first-child { top: 18px; }
+  .nav__burger span:last-child { top: 26px; }
+}
+@media (max-width: 420px) { .nav__word small { display: none; } .nav__word b { font-size: 0.92rem; } }
+
+/* ---------- Pinned showcase (desktop) ---------- */
+.showcase.is-pinned .showcase__sticky { gap: clamp(1rem, 3.2vh, 2.5rem); padding-block: calc(var(--nav-h) * 0.25) 3vh; }
+.showcase.is-pinned .showcase__head { margin-bottom: 0; }
+.showcase.is-pinned .showcase__head .t-1 { font-size: clamp(2rem, 1rem + 2.6vw, 3.6rem); }
+.showcase.is-pinned .show-card { flex-basis: min(64vh, 44vw); gap: 0.85rem; }
+.showcase.is-pinned .show-card p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.showcase.is-pinned .show-card--end { flex-basis: min(40vh, 26vw); min-height: min(48vh, 420px); }
+.showcase.is-pinned .showcase__track { backface-visibility: hidden; }
+.show-card .frame { transition: transform 0.7s var(--ease), box-shadow 0.7s var(--ease); }
+@media (hover: hover) and (pointer: fine) { .show-card:hover .frame { transform: translateY(-6px); box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.9); } }
+.showcase__meter .mono { color: var(--on-dark-3); }
+.showcase__count { font-family: var(--f-mono); font-size: 0.78rem; color: var(--on-dark-2); min-width: 3.5rem; text-align: right; }
+
+/* ---------- "View" cursor: small pill beside the pointer, never on top of it ---------- */
+.cursor {
+  width: auto; height: auto; margin: 0; padding: 0.5rem 0.85rem 0.5rem 0.75rem; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  background: rgba(15, 16, 18, 0.86); color: var(--on-dark); border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 0.78rem; font-weight: 560; letter-spacing: 0; white-space: nowrap;
+  box-shadow: 0 12px 26px -12px rgba(0, 0, 0, 0.55); transform-origin: 0 0;
+}
+.cursor::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--signal); flex: none; }
+.cursor.is-press { scale: 0.88; }
+
+/* ---------- Nudge: compact, desktop only ---------- */
+.nudge { width: min(330px, calc(100vw - 24px)); grid-template-columns: 64px 1fr; padding: 0.6rem; }
+@media (max-width: 767px) { .nudge { display: none !important; } }
+
+/* ---------- Photo ribbon ---------- */
+.ribbon { display: grid; gap: 0.75rem; }
+.ribbon .marquee__group { gap: 0.75rem; padding-right: 0.75rem; }
+.ribbon__img { flex: none; width: clamp(200px, 19vw, 330px); aspect-ratio: 4 / 3; border-radius: 20px; }
+.ribbon__img--tall { aspect-ratio: 3 / 4; width: clamp(150px, 14vw, 250px); }
+.marquee--slow .marquee__track { animation-duration: 80s; }
+.marquee--rev .marquee__track { animation-direction: reverse; }
+.ribbon-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1.25rem; margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem); }
+@media (hover: hover) { .ribbon:hover .marquee__track { animation-play-state: paused; } }
+
+/* ---------- Studio gallery ---------- */
+.mosaic { display: grid; gap: 0.75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.mosaic .frame { border-radius: 20px; cursor: zoom-in; }
+@media (min-width: 900px) {
+  .mosaic { grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: clamp(150px, 15vw, 240px); }
+  .mosaic > :nth-child(1) { grid-column: span 2; grid-row: span 2; }
+  .mosaic > :nth-child(6) { grid-column: span 2; }
+  .mosaic .frame { height: 100%; aspect-ratio: auto; }
+}
+
+/* ---------- Performance: skip rendering far-away sections ---------- */
+.cv { content-visibility: auto; contain-intrinsic-size: auto 1100px; }

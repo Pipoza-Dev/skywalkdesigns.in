@@ -1,0 +1,63 @@
+<a class="skip" href="#main">Skip to content</a>
+<header class="nav" data-nav>
+  <div class="nav__bar glass sheen">
+    <a class="nav__brand" href="{{root}}index.html" aria-label="Skywalk Designs, home">
+      <span class="nav__badge">{mark}</span>
+      <span class="nav__word"><b>SKYWALK</b><small>DESIGNS</small></span>
+    </a>
+    <nav class="nav__menu" aria-label="Main">
+      <ul class="nav__list" data-nav-list>
+        <li><a class="nav__link" href="{{root}}studio.html"{{cur:studio}}>Studio</a></li>
+        <li class="nav__has" data-mega-item="services">
+          <a class="nav__link" href="{{root}}services.html"{{cur:services}}>Services</a>
+          <button class="nav__chev" type="button" aria-expanded="false" aria-controls="mega-services" aria-label="Show services menu">{i:chev}</button>
+        </li>
+        <li class="nav__has" data-mega-item="projects">
+          <a class="nav__link" href="{{root}}projects.html"{{cur:projects}}>Projects</a>
+          <button class="nav__chev" type="button" aria-expanded="false" aria-controls="mega-projects" aria-label="Show projects menu">{i:chev}</button>
+        </li>
+        <li><a class="nav__link" href="{{root}}contact.html"{{cur:contact}}>Contact</a></li>
+      </ul>
+      <span class="nav__pill" aria-hidden="true"></span>
+    </nav>
+    <div class="nav__end">
+      <span class="nav__status" data-status><span class="dot" aria-hidden="true"></span><span data-status-text>Mon–Sat, 9 am–7 pm</span></span>
+      <button class="btn btn--signal btn--sm nav__cta" type="button" data-open="enquiry" data-magnetic>Let’s talk {arrow}</button>
+      <button class="nav__burger" type="button" data-open="menu" aria-haspopup="dialog" aria-controls="menu" aria-label="Open menu"><span></span><span></span></button>
+    </div>
+    <span class="nav__progress" aria-hidden="true"><span data-progress></span></span>
+  </div>
+
+  <div class="mega glass sheen" id="mega-services">
+    <div class="mega__inner">
+      <ul class="mega__grid">
+        <li><a class="mega__link" href="{{root}}services.html#architecture"><span class="mega__icon">{i:building}</span><span><b>Architecture</b><small>Homes, villas, farmhouses and mixed use</small></span></a></li>
+        <li><a class="mega__link" href="{{root}}services.html#interiors"><span class="mega__icon">{i:sofa}</span><span><b>Interior design</b><small>Complete interiors, down to the details</small></span></a></li>
+        <li><a class="mega__link" href="{{root}}services.html#commercial"><span class="mega__icon">{i:store}</span><span><b>Commercial &amp; hospitality</b><small>Retail, offices, salons and catering</small></span></a></li>
+        <li><a class="mega__link" href="{{root}}services.html#healthcare"><span class="mega__icon">{i:hospital}</span><span><b>Healthcare &amp; institutional</b><small>Clinics, hospitals and auditoriums</small></span></a></li>
+        <li><a class="mega__link" href="{{root}}services.html#renovation"><span class="mega__icon">{i:brush}</span><span><b>Renovation</b><small>New life for older homes</small></span></a></li>
+        <li><a class="mega__link" href="{{root}}services.html#delivery"><span class="mega__icon">{i:cube}</span><span><b>3D &amp; project management</b><small>See it first, then build it right</small></span></a></li>
+      </ul>
+      <a class="mega__feature card-link" href="{{root}}services.html">
+        <span class="frame"><img {img:house-of-festivities/01-drawing-room|300px} alt="" loading="lazy"></span>
+        <span class="mega__feature-body glass--dark">All services {i:arrow}</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="mega glass sheen" id="mega-projects">
+    <div class="mega__inner mega__inner--projects">
+      <ul class="mega__projects">
+        <li><a class="mega__proj" href="{{root}}projects/contemporary-residence.html"><span class="frame ar-43"><img {img:contemporary-residence/03-living-double-height|200px} alt="" loading="lazy"></span><b>Contemporary Residence<small>Residential · 2018</small></b></a></li>
+        <li><a class="mega__proj" href="{{root}}projects/allure-catering-studio.html"><span class="frame ar-43"><img {img:allure-catering-studio/01-dining-jali-arch|200px} alt="" loading="lazy"></span><b>Allure, Catering Studio<small>Hospitality · 2018</small></b></a></li>
+        <li><a class="mega__proj" href="{{root}}projects/house-of-festivities.html"><span class="frame ar-43"><img {img:house-of-festivities/03-pooja-room|200px} alt="" loading="lazy"></span><b>House of Festivities<small>Residential · 2017</small></b></a></li>
+        <li><a class="mega__proj" href="{{root}}projects/chitrakoot-residence.html"><span class="frame ar-43"><img {img:chitrakoot-residence/01-living|200px} alt="" loading="lazy"></span><b>Chitrakoot Residence<small>Renovation · 2016</small></b></a></li>
+        <li><a class="mega__proj" href="{{root}}projects/fuchsia-boutique.html"><span class="frame ar-43"><img {img:fuchsia-boutique/01-storefront-night|200px} alt="" loading="lazy"></span><b>Fuchsia Boutique Store<small>Retail · 2014</small></b></a></li>
+      </ul>
+      <div class="mega__foot">
+        <p>Every photograph published by the studio itself, from homes to hospitality.</p>
+        <a class="btn btn--ink btn--sm" href="{{root}}projects.html">All projects {arrow}</a>
+      </div>
+    </div>
+  </div>
+</header>

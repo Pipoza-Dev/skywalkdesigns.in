@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "skywalk-new-website",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ".claude/serve.ps1", "-Root", "New Website", "-Port", "5180"],
+      "port": 5180
+    },
+    {
+      "name": "skywalk-image-build",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ".claude/serve.ps1", "-Root", ".", "-Port", "5181", "-AllowPut"],
+      "port": 5181
+    }
+  ]
+}

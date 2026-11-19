@@ -1,0 +1,90 @@
+<div class="dock" data-dock>
+  <button class="dock__top glass--dark" type="button" data-to-top aria-label="Back to top">
+    <svg class="dock__ring" viewBox="0 0 48 48" aria-hidden="true"><circle class="bg" cx="24" cy="24" r="22"/><circle class="fg" cx="24" cy="24" r="22"/></svg>
+    {i:arrow-up}
+  </button>
+  <div class="dock__group glass--dark sheen">
+    <a class="dock__btn" href="tel:+919549599987" aria-label="Call the studio">{i:phone}<span class="dock__label">Call</span><span class="dock__tip" aria-hidden="true">Call +91 95495 99987</span></a>
+    <a class="dock__btn" href="https://wa.me/919549599987" target="_blank" rel="noopener" aria-label="Chat on WhatsApp">{i:whatsapp}<span class="dock__label">WhatsApp</span><span class="dock__tip" aria-hidden="true">Chat on WhatsApp</span></a>
+    <button class="dock__btn dock__btn--primary" type="button" data-open="enquiry" aria-label="Send a project enquiry">{i:pen}<span class="dock__label">Enquire</span><span class="dock__tip" aria-hidden="true">Send an enquiry</span></button>
+  </div>
+</div>
+
+<div class="toast glass--dark" role="status" aria-live="polite" data-toast>{i:check}<span></span></div>
+
+<dialog class="modal" id="enquiry" aria-labelledby="enquiry-title" data-dialog>
+  <div class="modal__card glass sheen">
+    <button class="icon-btn modal__close" type="button" data-close aria-label="Close enquiry form">{i:close}</button>
+    <div class="modal__head">
+      <p class="eyebrow">Project enquiry</p>
+      <h2 class="t-3" id="enquiry-title">Tell us about your <em class="serif">project</em></h2>
+      <p class="muted small">Your message opens in WhatsApp, ready to send to the studio. Nothing is stored on this website.</p>
+    </div>
+    <form class="form" data-enquiry novalidate>
+      <div class="form__row form__row--2">
+        <div class="field">
+          <input id="q-name" name="name" type="text" autocomplete="name" placeholder="Your full name" required aria-describedby="q-name-msg">
+          <label for="q-name">Your name</label>
+          <p class="field__msg" id="q-name-msg" aria-live="polite"></p>
+        </div>
+        <div class="field">
+          <input id="q-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="+91" required aria-describedby="q-phone-msg">
+          <label for="q-phone">Phone / WhatsApp</label>
+          <p class="field__msg" id="q-phone-msg" aria-live="polite"></p>
+        </div>
+      </div>
+      <fieldset class="choices">
+        <legend>What are you planning?</legend>
+        <label class="choice"><input type="radio" name="type" value="New home / villa"><span>New home</span></label>
+        <label class="choice"><input type="radio" name="type" value="Interior design"><span>Interiors</span></label>
+        <label class="choice"><input type="radio" name="type" value="Renovation"><span>Renovation</span></label>
+        <label class="choice"><input type="radio" name="type" value="Commercial / retail"><span>Commercial</span></label>
+        <label class="choice"><input type="radio" name="type" value="Other"><span>Other</span></label>
+      </fieldset>
+      <div class="field">
+        <textarea id="q-message" name="message" placeholder="Site location, size, rooms, timeline…"></textarea>
+        <label for="q-message">About the project (optional)</label>
+      </div>
+      <button class="btn btn--ink btn--lg" type="submit">Continue on WhatsApp {arrow}</button>
+      <p class="form__status" data-form-status aria-live="polite"></p>
+    </form>
+  </div>
+</dialog>
+
+<dialog class="menu" id="menu" aria-label="Site menu" data-dialog>
+  <div class="menu__sheet">
+    <div class="menu__top">
+      <a class="nav__brand" href="{{root}}index.html" aria-label="Skywalk Designs, home">
+        <span class="nav__badge">{mark}</span>
+        <span class="nav__word"><b>SKYWALK</b><small>DESIGNS</small></span>
+      </a>
+      <button class="icon-btn menu__close" type="button" data-close aria-label="Close menu">{i:close}</button>
+    </div>
+    <nav aria-label="Mobile">
+      <ol class="menu__list">
+        <li><a class="menu__link" href="{{root}}index.html"{{cur:home}}><span class="mono">01</span>Home{i:arrow-ur}</a></li>
+        <li><a class="menu__link" href="{{root}}studio.html"{{cur:studio}}><span class="mono">02</span>Studio{i:arrow-ur}</a></li>
+        <li><a class="menu__link" href="{{root}}services.html"{{cur:services}}><span class="mono">03</span>Services{i:arrow-ur}</a></li>
+        <li><a class="menu__link" href="{{root}}projects.html"{{cur:projects}}><span class="mono">04</span>Projects{i:arrow-ur}</a></li>
+        <li><a class="menu__link" href="{{root}}contact.html"{{cur:contact}}><span class="mono">05</span>Contact{i:arrow-ur}</a></li>
+      </ol>
+    </nav>
+    <div class="fade-in">
+      <p class="mono menu__label">Selected projects</p>
+      <div class="menu__projects">
+        <a class="menu__proj" href="{{root}}projects/contemporary-residence.html"><span class="frame ar-43"><img {img:contemporary-residence/03-living-double-height|240px} alt="" loading="lazy"></span>Contemporary Residence</a>
+        <a class="menu__proj" href="{{root}}projects/allure-catering-studio.html"><span class="frame ar-43"><img {img:allure-catering-studio/01-dining-jali-arch|240px} alt="" loading="lazy"></span>Allure, Catering Studio</a>
+        <a class="menu__proj" href="{{root}}projects/house-of-festivities.html"><span class="frame ar-43"><img {img:house-of-festivities/01-drawing-room|240px} alt="" loading="lazy"></span>House of Festivities</a>
+        <a class="menu__proj" href="{{root}}projects/chitrakoot-residence.html"><span class="frame ar-43"><img {img:chitrakoot-residence/01-living|240px} alt="" loading="lazy"></span>Chitrakoot Residence</a>
+        <a class="menu__proj" href="{{root}}projects/fuchsia-boutique.html"><span class="frame ar-43"><img {img:fuchsia-boutique/01-storefront-night|240px} alt="" loading="lazy"></span>Fuchsia Boutique Store</a>
+      </div>
+    </div>
+    <div class="menu__foot fade-in">
+      <div class="menu__actions">
+        <a class="btn btn--signal btn--plain" href="tel:+919549599987">{i:phone} Call</a>
+        <a class="btn btn--glass-dark btn--plain" href="https://wa.me/919549599987" target="_blank" rel="noopener">{i:whatsapp} WhatsApp</a>
+      </div>
+      <p class="menu__status" data-status><span class="dot" aria-hidden="true"></span><span data-status-text>Mon–Sat, 9 am–7 pm</span> · <span data-time>Jaipur</span></p>
+    </div>
+  </div>
+</dialog>
