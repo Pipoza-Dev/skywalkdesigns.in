@@ -12,7 +12,7 @@ $mime = @{
   ".png" = "image/png"; ".jpg" = "image/jpeg"; ".webp" = "image/webp"; ".ico" = "image/x-icon";
   ".txt" = "text/plain; charset=utf-8"; ".xml" = "application/xml"; ".woff2" = "font/woff2"
 }
-$csp = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-src 'self' https://www.google.com; connect-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
+$csp = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://lh3.googleusercontent.com; frame-src 'self' https://www.google.com; connect-src 'self' https://skywalk-designs-default-rtdb.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'"
 $putAllowed = @("New Website/assets/img/", "source/build/")
 
 $listener = New-Object System.Net.HttpListener
@@ -24,6 +24,7 @@ while ($listener.IsListening) {
   $req = $ctx.Request; $res = $ctx.Response
   try {
     $rel = [Uri]::UnescapeDataString($req.Url.AbsolutePath).TrimStart('/')
+    if ($rel -like 'skywalkdesigns.in/*' -or $rel -eq 'skywalkdesigns.in') { $rel = $rel.Substring('skywalkdesigns.in'.Length).TrimStart('/') }
     if ($AllowPut -and $req.HttpMethod -eq "PUT" -and $rel.StartsWith("__put/")) {
       $target = $rel.Substring(6)
       $ok = $false; foreach ($p in $putAllowed) { if ($target.StartsWith($p)) { $ok = $true } }
@@ -32,6 +33,9 @@ while ($listener.IsListening) {
       New-Item -ItemType Directory -Force (Split-Path $full -Parent) | Out-Null
       $fs = [IO.File]::Create($full); $req.InputStream.CopyTo($fs); $fs.Close()
       $res.StatusCode = 201; $res.Close(); continue
+    }
+    if ($rel -ne "" -and -not $rel.EndsWith("/") -and (Test-Path -LiteralPath (Join-Path $rootPath $rel) -PathType Container)) {
+      $res.StatusCode = 301; $res.RedirectLocation = $req.Url.AbsolutePath + "/" + $req.Url.Query; $res.Close(); continue
     }
     if ($rel -eq "" -or $rel.EndsWith("/")) { $rel += "index.html" }
     $file = [IO.Path]::GetFullPath((Join-Path $rootPath $rel))

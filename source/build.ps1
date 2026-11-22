@@ -2,8 +2,11 @@
 # Usage (from the project folder):  powershell -ExecutionPolicy Bypass -File source/build.ps1 [-Domain https://www.example.com]
 # Assembles source/pages with source/partials, expands image/icon macros, minifies HTML/CSS/JS,
 # adds cache-busting and writes security headers for Netlify / Cloudflare Pages / Vercel / Apache.
-param([string]$Domain = "", [string]$BasePath = "/skywalkdesigns.in/")
+param([string]$Domain = "", [string]$BasePath = "")
 $ErrorActionPreference = "Stop"
+# The 404 page can be served at any URL depth, so it uses absolute links.
+# GitHub Pages project site → /skywalkdesigns.in/ ; own domain (-Domain given) → /
+if (-not $BasePath) { $BasePath = if ($Domain) { "/" } else { "/skywalkdesigns.in/" } }
 
 $S   = $PSScriptRoot
 $P   = Split-Path $S -Parent
@@ -106,7 +109,10 @@ function Minify-Html([string]$h) {
 # ---------- Assets ----------
 $css = (Get-ChildItem (Join-Path $S "css") -Filter *.css | Sort-Object Name | ForEach-Object { Read-Text $_.FullName }) -join "`n"
 $cssMin = Minify-Css $css
-$jsMin = Minify-Js (Read-Text (Join-Path $S "js\app.js"))
+$fbRaw = Read-Text (Join-Path $S "firebase\config.json")
+$fbCfg = $fbRaw | ConvertFrom-Json
+$fbPublic = if ($fbCfg.databaseURL -match '^https://[a-z0-9-]+\.(firebaseio\.com|[a-z0-9-]+\.firebasedatabase\.app)/?$') { "{""db"":""$($fbCfg.databaseURL.TrimEnd('/'))""}" } else { "null" }
+$jsMin = Minify-Js ((Read-Text (Join-Path $S "js\app.js")).Replace('"%%FIREBASE%%"', $fbPublic))
 $sha = [Security.Cryptography.SHA256]::Create()
 $v = ([BitConverter]::ToString($sha.ComputeHash($utf8.GetBytes($cssMin + $jsMin))) -replace '-', '').Substring(0, 10).ToLower()
 Write-Text (Join-Path $OUT "assets\css\app.css") $cssMin
@@ -164,7 +170,7 @@ foreach ($f in Get-ChildItem $pagesDir -Recurse -Filter *.html) {
 }
 
 # ---------- Security headers, manifest, robots, sitemap ----------
-$csp = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-src 'self' https://www.google.com; connect-src 'self'; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests"
+$csp = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://lh3.googleusercontent.com; frame-src 'self' https://www.google.com; connect-src 'self' https://skywalk-designs-default-rtdb.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://script.google.com https://script.googleusercontent.com; manifest-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests"
 $perm = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()"
 Write-Text (Join-Path $OUT "_headers") @"
 /*
@@ -231,12 +237,24 @@ ErrorDocument 404 /404.html
 </IfModule>
 "@
 Write-Text (Join-Path $OUT "site.webmanifest") '{"name":"Skywalk Designs","short_name":"Skywalk","description":"Architecture and interior design studio in Jaipur, Rajasthan.","start_url":"./","display":"standalone","background_color":"#0f1012","theme_color":"#0f1012","icons":[{"src":"assets/brand/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"assets/brand/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'
-$robots = "User-agent: *`nAllow: /`nDisallow: /404.html`n"
+$robots = "User-agent: *`nAllow: /`nDisallow: /404.html`nDisallow: /admin/`n"
 if ($Domain) {
   $robots += "`nSitemap: $Domain/sitemap.xml`n"
   $urls = ($built | Where-Object { $_ -ne '404.html' } | Sort-Object | ForEach-Object { $u = if ($_ -eq 'index.html') { '' } else { $_ }; "  <url><loc>$Domain/$u</loc></url>" }) -join "`n"
   Write-Text (Join-Path $OUT "sitemap.xml") "<?xml version=""1.0"" encoding=""UTF-8""?>`n<urlset xmlns=""http://www.sitemaps.org/schemas/sitemap/0.9"">`n$urls`n</urlset>`n"
 } elseif (Test-Path (Join-Path $OUT "sitemap.xml")) { Remove-Item (Join-Path $OUT "sitemap.xml") }
 Write-Text (Join-Path $OUT "robots.txt") $robots
+
+# ---------- Studio dashboard (/admin/) ----------
+$ADM = Join-Path $OUT "admin"
+if (Test-Path $ADM) { Get-ChildItem -LiteralPath $ADM -Recurse -File | Remove-Item -Force }
+New-Item -ItemType Directory -Force (Join-Path $ADM "vendor") | Out-Null
+$admCsp = $csp.Replace(" upgrade-insecure-requests", "").Replace(" frame-ancestors 'none';", "")
+$admHtml = (Read-Text (Join-Path $S "admin\index.html")).Replace('{{csp}}', $admCsp).Replace('{{v}}', $v).Replace('{{base}}', $BasePath)
+Write-Text (Join-Path $ADM "index.html") $admHtml
+Write-Text (Join-Path $ADM "admin.css") (Minify-Css (Read-Text (Join-Path $S "admin\admin.css")))
+Copy-Item (Join-Path $S "admin\admin.js") (Join-Path $ADM "admin.js")
+Copy-Item (Join-Path $S "admin\vendor\*.js") (Join-Path $ADM "vendor")
+Write-Text (Join-Path $ADM "config.js") ("export default " + ($fbRaw.Trim()) + ";`n")
 
 "Built $($built.Count) pages, css $([math]::Round($cssMin.Length/1KB,1)) KB, js $([math]::Round($jsMin.Length/1KB,1)) KB, v=$v"

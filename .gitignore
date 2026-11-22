@@ -6,3 +6,8 @@ Thumbs.db
 desktop.ini
 .DS_Store
 *.tmp
+
+# Private notes for the client (not published)
+/Message-for-Client.md
+
+/source/firebase/*.private.json

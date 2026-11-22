@@ -1,0 +1,146 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "meta": {
+      "developer": {
+        ".read": "auth != null",
+        ".write": "auth != null && !data.exists() && newData.exists() && auth.token.email != null && auth.token.email.toLowerCase() === 'DEVELOPER_EMAIL' && newData.parent().parent().child('users').child(auth.uid).child('role').val() === 'developer'",
+        ".validate": "newData.hasChildren(['uid', 'email', 'createdAt'])",
+        "uid": { ".validate": "newData.val() === auth.uid" },
+        "email": { ".validate": "newData.isString() && newData.val().toLowerCase() === auth.token.email.toLowerCase()" },
+        "createdAt": { ".validate": "newData.val() === now" },
+        "$other": { ".validate": false }
+      },
+      "$other": { ".validate": false }
+    },
+
+    "users": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('active').val() === true && (root.child('users').child(auth.uid).child('role').val() === 'developer' || root.child('users').child(auth.uid).child('role').val() === 'owner')",
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "(auth != null && $uid === auth.uid && !data.exists() && !root.child('meta').child('developer').exists() && newData.child('role').val() === 'developer' && newData.child('active').val() === true && newData.parent().parent().child('meta').child('developer').child('uid').val() === auth.uid) || (auth != null && $uid !== auth.uid && root.child('users').child(auth.uid).child('active').val() === true && root.child('users').child(auth.uid).child('role').val() === 'developer' && (!data.exists() || data.child('role').val() !== 'developer') && (!newData.exists() || newData.child('role').val() === 'owner' || newData.child('role').val() === 'editor' || newData.child('role').val() === 'contributor')) || (auth != null && $uid !== auth.uid && root.child('users').child(auth.uid).child('active').val() === true && root.child('users').child(auth.uid).child('role').val() === 'owner' && (!data.exists() || data.child('role').val() === 'editor' || data.child('role').val() === 'contributor') && (!newData.exists() || newData.child('role').val() === 'editor' || newData.child('role').val() === 'contributor'))",
+        ".validate": "newData.hasChildren(['name', 'email', 'role', 'active', 'createdAt', 'createdBy'])",
+        "name": {
+          ".write": "auth != null && auth.uid === $uid && data.exists() && root.child('users').child($uid).child('active').val() === true",
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 60"
+        },
+        "email": { ".validate": "newData.isString() && newData.val().length <= 120 && (!data.exists() || newData.val() === data.val())" },
+        "phone": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('active').val() === true",
+          ".validate": "newData.isString() && newData.val().length <= 30"
+        },
+        "role": { ".validate": "newData.val() === 'developer' || newData.val() === 'owner' || newData.val() === 'editor' || newData.val() === 'contributor'" },
+        "active": { ".validate": "newData.isBoolean()" },
+        "createdAt": { ".validate": "(data.exists() && newData.val() === data.val()) || (!data.exists() && newData.val() === now)" },
+        "createdBy": { ".validate": "(data.exists() && newData.val() === data.val()) || (!data.exists() && newData.val() === auth.uid)" },
+        "createdByName": { ".validate": "newData.isString() && newData.val().length <= 120 && (!data.exists() || newData.val() === data.val())" },
+        "updatedAt": { ".validate": "newData.val() === now" },
+        "updatedBy": { ".validate": "newData.val() === auth.uid" },
+        "lastLogin": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).exists()",
+          ".validate": "newData.val() === now"
+        },
+        "loginCount": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).exists()",
+          ".validate": "newData.isNumber() && ((data.exists() && newData.val() === data.val() + 1) || (!data.exists() && newData.val() === 1))"
+        },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "projects": {
+      ".read": "(auth != null && root.child('users').child(auth.uid).child('active').val() === true) || (query.orderByChild === 'status' && query.equalTo === 'published')",
+      ".indexOn": ["status", "slug"],
+      "$id": {
+        ".read": "data.child('status').val() === 'published'",
+        ".write": "(auth != null && root.child('users').child(auth.uid).child('active').val() === true && (root.child('users').child(auth.uid).child('role').val() === 'developer' || root.child('users').child(auth.uid).child('role').val() === 'owner' || root.child('users').child(auth.uid).child('role').val() === 'editor')) || (auth != null && root.child('users').child(auth.uid).child('active').val() === true && newData.exists() && (!data.exists() || data.child('status').val() !== 'published') && (newData.child('status').val() === 'draft' || newData.child('status').val() === 'review'))",
+        ".validate": "$id.matches(/^[A-Za-z0-9_-]+$/) && $id.length >= 6 && $id.length <= 40 && newData.hasChildren(['title', 'slug', 'status', 'featured', 'order', 'updatedAt', 'updatedBy', 'updatedByName', 'createdAt', 'createdBy'])",
+        "title": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 90" },
+        "slug": { ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9-]+$/) && newData.val().length <= 80 && !newData.val().beginsWith('-') && !newData.val().endsWith('-')" },
+        "year": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1990 && newData.val() <= 2100" },
+        "location": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "typology": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "scope": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "budget": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "summary": { ".validate": "newData.isString() && newData.val().length <= 260" },
+        "story": { ".validate": "newData.isString() && newData.val().length <= 6000" },
+        "category": {
+          "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.isString() && (newData.val() === 'residential' || newData.val() === 'commercial' || newData.val() === 'hospitality' || newData.val() === 'healthcare' || newData.val() === 'details' || newData.val() === 'visualisation')" }
+        },
+        "images": {
+          "$i": {
+            ".validate": "$i.matches(/^[0-9]+$/) && $i.length <= 2 && newData.hasChildren(['url', 'thumb'])",
+            "id": { ".validate": "newData.isString() && newData.val().length <= 100 && (newData.val() === '' || newData.val().matches(/^[A-Za-z0-9_-]+$/))" },
+            "url": { ".validate": "newData.isString() && newData.val().length <= 200 && newData.val().beginsWith('https://lh3.googleusercontent.com/d/') && newData.val().replace('https://lh3.googleusercontent.com/d/', '').matches(/^[A-Za-z0-9_-]+=w[0-9]+$/)" },
+            "thumb": { ".validate": "newData.isString() && newData.val().length <= 200 && newData.val().beginsWith('https://lh3.googleusercontent.com/d/') && newData.val().replace('https://lh3.googleusercontent.com/d/', '').matches(/^[A-Za-z0-9_-]+=w[0-9]+$/)" },
+            "w": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000" },
+            "h": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000" },
+            "caption": { ".validate": "newData.isString() && newData.val().length <= 120" },
+            "name": { ".validate": "newData.isString() && newData.val().length <= 200" },
+            "bytes": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20000000" },
+            "uploadedAt": { ".validate": "newData.isNumber()" },
+            "uploadedBy": { ".validate": "newData.isString() && newData.val().length <= 128" },
+            "$other": { ".validate": false }
+          }
+        },
+        "featured": { ".validate": "newData.isBoolean()" },
+        "order": { ".validate": "newData.isNumber() && newData.val() >= -100000 && newData.val() <= 100000" },
+        "status": { ".validate": "newData.val() === 'draft' || newData.val() === 'review' || newData.val() === 'published'" },
+        "publishedAt": { ".validate": "newData.isNumber() && ((data.exists() && newData.val() === data.val()) || newData.val() === now)" },
+        "updatedAt": { ".validate": "newData.val() === now" },
+        "updatedBy": { ".validate": "newData.val() === auth.uid" },
+        "updatedByName": { ".validate": "newData.isString() && newData.val().length <= 120" },
+        "createdAt": { ".validate": "(data.exists() && newData.val() === data.val()) || (!data.exists() && newData.val() === now)" },
+        "createdBy": { ".validate": "(data.exists() && newData.val() === data.val()) || (!data.exists() && newData.val() === auth.uid)" },
+        "createdByName": { ".validate": "newData.isString() && newData.val().length <= 120 && (!data.exists() || newData.val() === data.val())" },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "testimonials": {
+      ".read": "(auth != null && root.child('users').child(auth.uid).child('active').val() === true) || (query.orderByChild === 'status' && query.equalTo === 'published')",
+      ".indexOn": ["status"],
+      "$id": {
+        ".read": "data.child('status').val() === 'published'",
+        ".write": "(auth != null && root.child('users').child(auth.uid).child('active').val() === true && (root.child('users').child(auth.uid).child('role').val() === 'developer' || root.child('users').child(auth.uid).child('role').val() === 'owner' || root.child('users').child(auth.uid).child('role').val() === 'editor')) || (auth != null && root.child('users').child(auth.uid).child('active').val() === true && newData.exists() && (!data.exists() || data.child('status').val() !== 'published') && (newData.child('status').val() === 'draft' || newData.child('status').val() === 'review'))",
+        ".validate": "$id.matches(/^[A-Za-z0-9_-]+$/) && $id.length >= 6 && $id.length <= 40 && newData.hasChildren(['quote', 'name', 'status', 'rating', 'order', 'updatedAt', 'updatedBy', 'createdAt', 'createdBy'])",
+        "quote": { ".validate": "newData.isString() && newData.val().length >= 5 && newData.val().length <= 400" },
+        "name": { ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 60" },
+        "source": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "rating": { ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 1 && newData.val() <= 5" },
+        "order": { ".validate": "newData.isNumber() && newData.val() >= -100000 && newData.val() <= 100000" },
+        "status": { ".validate": "newData.val() === 'draft' || newData.val() === 'review' || newData.val() === 'published'" },
+        "photo": { ".validate": "newData.isString() && newData.val().length <= 200 && (newData.val() === '' || (newData.val().beginsWith('https://lh3.googleusercontent.com/d/') && newData.val().replace('https://lh3.googleusercontent.com/d/', '').matches(/^[A-Za-z0-9_-]+=w[0-9]+$/)))" },
+        "photoId": { ".validate": "newData.isString() && newData.val().length <= 100 && (newData.val() === '' || newData.val().matches(/^[A-Za-z0-9_-]+$/))" },
+        "updatedAt": { ".validate": "newData.val() === now" },
+        "updatedBy": { ".validate": "newData.val() === auth.uid" },
+        "updatedByName": { ".validate": "newData.isString() && newData.val().length <= 120" },
+        "createdAt": { ".validate": "(data.exists() && newData.val() === data.val()) || (!data.exists() && newData.val() === now)" },
+        "createdBy": { ".validate": "(data.exists() && newData.val() === data.val()) || (!data.exists() && newData.val() === auth.uid)" },
+        "createdByName": { ".validate": "newData.isString() && newData.val().length <= 120 && (!data.exists() || newData.val() === data.val())" },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "logs": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('active').val() === true && (root.child('users').child(auth.uid).child('role').val() === 'developer' || root.child('users').child(auth.uid).child('role').val() === 'owner')",
+      ".indexOn": ["at"],
+      "$id": {
+        ".write": "(auth != null && !data.exists() && newData.exists() && root.child('users').child(auth.uid).exists()) || (auth != null && data.exists() && !newData.exists() && root.child('users').child(auth.uid).child('active').val() === true && root.child('users').child(auth.uid).child('role').val() === 'developer')",
+        ".validate": "$id.matches(/^[A-Za-z0-9_-]+$/) && $id.length >= 6 && $id.length <= 40 && newData.hasChildren(['at', 'uid', 'action'])",
+        "at": { ".validate": "newData.val() === now" },
+        "uid": { ".validate": "newData.val() === auth.uid" },
+        "name": { ".validate": "newData.isString() && newData.val().length <= 120" },
+        "email": { ".validate": "newData.isString() && newData.val() === auth.token.email" },
+        "role": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "action": { ".validate": "newData.isString() && newData.val().matches(/^[a-z]+[.][a-z.]+$/) && newData.val().length <= 40" },
+        "target": { ".validate": "newData.isString() && newData.val().length <= 200" },
+        "detail": { ".validate": "newData.isString() && newData.val().length <= 500" },
+        "device": { ".validate": "newData.isString() && newData.val().length <= 300" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}
