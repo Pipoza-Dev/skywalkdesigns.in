@@ -31,6 +31,14 @@
           ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('active').val() === true",
           ".validate": "newData.isString() && newData.val().length <= 30"
         },
+        "photo": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('active').val() === true",
+          ".validate": "newData.isString() && newData.val().length <= 200 && newData.val().beginsWith('https://lh3.googleusercontent.com/d/') && newData.val().replace('https://lh3.googleusercontent.com/d/', '').matches(/^[A-Za-z0-9_-]+=w[0-9]+$/)"
+        },
+        "photoId": {
+          ".write": "auth != null && auth.uid === $uid && root.child('users').child($uid).child('active').val() === true",
+          ".validate": "newData.isString() && newData.val().length <= 100 && newData.val().matches(/^[A-Za-z0-9_-]+$/)"
+        },
         "role": { ".validate": "newData.val() === 'developer' || newData.val() === 'owner' || newData.val() === 'editor' || newData.val() === 'contributor'" },
         "active": { ".validate": "newData.isBoolean()" },
         "createdAt": { ".validate": "(data.exists() && newData.val() === data.val()) || (!data.exists() && newData.val() === now)" },
@@ -68,6 +76,20 @@
         "story": { ".validate": "newData.isString() && newData.val().length <= 6000" },
         "category": {
           "$i": { ".validate": "$i.matches(/^[0-9]$/) && newData.isString() && (newData.val() === 'residential' || newData.val() === 'commercial' || newData.val() === 'hospitality' || newData.val() === 'healthcare' || newData.val() === 'details' || newData.val() === 'visualisation')" }
+        },
+        "cover": {
+          ".validate": "newData.hasChildren(['url', 'thumb'])",
+          "id": { ".validate": "newData.isString() && newData.val().length <= 100 && (newData.val() === '' || newData.val().matches(/^[A-Za-z0-9_-]+$/))" },
+          "url": { ".validate": "newData.isString() && newData.val().length <= 200 && newData.val().beginsWith('https://lh3.googleusercontent.com/d/') && newData.val().replace('https://lh3.googleusercontent.com/d/', '').matches(/^[A-Za-z0-9_-]+=w[0-9]+$/)" },
+          "thumb": { ".validate": "newData.isString() && newData.val().length <= 200 && newData.val().beginsWith('https://lh3.googleusercontent.com/d/') && newData.val().replace('https://lh3.googleusercontent.com/d/', '').matches(/^[A-Za-z0-9_-]+=w[0-9]+$/)" },
+          "w": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000" },
+          "h": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 10000" },
+          "caption": { ".validate": "newData.isString() && newData.val().length <= 120" },
+          "name": { ".validate": "newData.isString() && newData.val().length <= 200" },
+          "bytes": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20000000" },
+          "uploadedAt": { ".validate": "newData.isNumber()" },
+          "uploadedBy": { ".validate": "newData.isString() && newData.val().length <= 128" },
+          "$other": { ".validate": false }
         },
         "images": {
           "$i": {

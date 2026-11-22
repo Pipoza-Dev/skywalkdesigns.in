@@ -231,7 +231,7 @@ function render() {
   const main = h("main", { class: "adm-main", id: "main" });
   mount(h("div", { class: "adm-shell" },
     h("aside", { class: "adm-side" }, brand(), nav, h("div", { class: "adm-side__foot" },
-      h("div", { class: "adm-me" }, h("b", { text: S.profile.name || S.user.email }), h("span", { class: "adm-badge adm-badge--" + S.profile.role, text: S.profile.role })),
+      h("div", { class: "adm-me" }, h("div", { class: "adm-me__top" }, avatar(S.profile, "adm-avatar--xs"), h("b", { text: S.profile.name || S.user.email })), h("span", { class: "adm-badge adm-badge--" + S.profile.role, text: S.profile.role })),
       h("a", { href: SITE + "index.html", target: "_blank", rel: "noopener" }, "View website ↗"),
       h("button", { type: "button", onClick: () => { log("auth.signout", S.user.email, "Signed out").finally(() => signOut(auth)); } }, "Sign out"))),
     main));
@@ -257,7 +257,7 @@ async function projectsView(main) {
     const shown = list0.filter((r) => S.filter === "all" || r.status === S.filter);
     if (!shown.length) { list.replaceChildren(h("div", { class: "adm-empty" }, h("p", { text: "No projects here yet." }), btn("Add the first project", "btn--ink btn--sm btn--plain", () => projectEditor(null)))); return; }
     list.replaceChildren(...shown.map((p) => {
-      const cover = p.images && p.images[0];
+      const cover = (p.cover && p.cover.url ? p.cover : null) || (p.images && p.images[0]);
       return h("button", { class: "adm-item", type: "button", onClick: () => projectEditor(p) },
         h("span", { class: "adm-item__img" }, cover ? h("img", { src: cover.thumb || cover.url, alt: "", loading: "lazy" }) : "No photo yet"),
         h("span", { class: "adm-item__body" }, h("b", { text: p.title || "Untitled" }),
@@ -282,6 +282,45 @@ async function webp(file, maxW, q) {
   let blob = await new Promise((r) => c.toBlob(r, "image/webp", q));
   if (!blob || blob.type !== "image/webp") blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.85));
   return { blob, w, h: hh };
+}
+async function squareWebp(file, size) {
+  const bmp = await createImageBitmap(file);
+  const s = Math.min(bmp.width, bmp.height);
+  const c = document.createElement("canvas");
+  c.width = size; c.height = size;
+  const ctx = c.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bmp, (bmp.width - s) / 2, (bmp.height - s) / 2, s, s, 0, 0, size, size);
+  bmp.close();
+  let blob = await new Promise((r) => c.toBlob(r, "image/webp", 0.86));
+  if (!blob || blob.type !== "image/webp") blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.88));
+  return blob;
+}
+function avatar(u, cls) {
+  if (u && okDriveUrl(u.photo)) return h("img", { class: "adm-avatar " + (cls || ""), src: u.photo, alt: "", width: "40", height: "40" });
+  const ini = String((u && (u.name || u.email)) || "?").trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  return h("span", { class: "adm-avatar adm-avatar--ph " + (cls || ""), "aria-hidden": "true", text: ini });
+}
+async function setProfilePhoto(u, file) {
+  const blob = await squareWebp(file, 400);
+  const up = await driveUpload(blob, "other", "", "profile-" + (u.name || "member"));
+  if (!okDriveUrl(up.url)) throw new Error("Upload returned an unexpected address.");
+  const url = up.url.replace(/=w\d+$/, "=w400");
+  await dbPatch("users/" + u.id, { photo: url, photoId: up.id });
+  if (u.photoId && can.publish()) driveDelete(u.photoId);
+  log("profile.photo", u.email, (u.id === S.user.uid ? "Own" : "Member") + " profile photo → Drive " + up.id);
+  u.photo = url; u.photoId = up.id;
+}
+async function clearProfilePhoto(u) {
+  await dbPatch("users/" + u.id, { photo: null, photoId: null });
+  if (u.photoId && can.publish()) driveDelete(u.photoId);
+  log("profile.photo", u.email, "Profile photo removed");
+  u.photo = ""; u.photoId = "";
+}
+function photoPicker(label, onFile) {
+  const input = h("input", { type: "file", accept: "image/jpeg,image/png,image/webp", "aria-label": label });
+  input.addEventListener("change", () => { const f0 = input.files[0]; input.value = ""; if (f0) onFile(f0); });
+  return h("label", { class: "btn btn--line btn--sm btn--plain adm-file" }, label, input);
 }
 function toBase64(blob) {
   return new Promise((resolve, reject) => {
@@ -311,6 +350,7 @@ function projectEditor(p) {
   const id = p ? p.id : newId();
   const data = p ? JSON.parse(JSON.stringify(p)) : { status: "draft", images: [], category: [], featured: false, order: 0 };
   const images = (data.images || []).slice();
+  let cover = data.cover && data.cover.url ? data.cover : (images.length ? images.shift() : null);
   const main = document.getElementById("main");
   main.replaceChildren();
   const err = h("p", { class: "adm-err", role: "alert" });
@@ -340,6 +380,48 @@ function projectEditor(p) {
   f.title.addEventListener("input", () => { if (!slugTouched) f.slug.value = slugify(f.title.value); });
   const cats = h("div", { class: "chips" }, CATS.map(([v, l]) => h("label", { class: "choice" }, h("input", { type: "checkbox", value: v, checked: (data.category || []).includes(v) ? true : null }), h("span", { text: l }))));
 
+  const removed = [];
+  const uploadOne = async (file, kind) => {
+    const big = await webp(file, kind === "cover" ? 2000 : 1800, 0.82);
+    const up = await driveUpload(big.blob, "project", id, (f.slug.value || f.title.value || "project") + (kind === "cover" ? "-cover" : ""));
+    if (!okDriveUrl(up.url) || !okDriveUrl(up.thumb)) throw new Error("Upload returned an unexpected address.");
+    log("photo.upload", f.title.value || id, (kind === "cover" ? "Cover: " : "Photo: ") + (file.name || "photo") + " → Drive " + up.id);
+    return { id: up.id, url: up.url, thumb: up.thumb, w: big.w, h: big.h, caption: "", name: String(file.name || "").slice(0, 200), bytes: big.blob.size, uploadedAt: Date.now(), uploadedBy: S.user.uid };
+  };
+  const dropZone = (title, hint, multiple, onFiles) => {
+    const input = h("input", { type: "file", accept: "image/jpeg,image/png,image/webp", multiple: multiple ? true : null, "aria-label": title });
+    const z = h("label", { class: "adm-drop" }, icon("upload"), h("b", { text: title }), h("span", { class: "adm-hint", text: hint }), input);
+    input.addEventListener("change", () => { onFiles(Array.from(input.files)); input.value = ""; });
+    z.addEventListener("dragover", (e) => { e.preventDefault(); z.classList.add("is-over"); });
+    z.addEventListener("dragleave", () => z.classList.remove("is-over"));
+    z.addEventListener("drop", (e) => { e.preventDefault(); z.classList.remove("is-over"); onFiles(Array.from(e.dataTransfer.files)); });
+    return z;
+  };
+
+  /* cover photo: the preview image used on cards, the home showcase, link previews and the top of the project page */
+  const coverBox = h("div", { class: "adm-cover" });
+  const coverProg = h("p", { class: "adm-hint", "aria-live": "polite" });
+  const coverCap = h("input", { type: "text", maxlength: "120", placeholder: "Caption (optional)", "aria-label": "Cover caption" });
+  coverCap.addEventListener("input", () => { if (cover) cover.caption = coverCap.value; });
+  const setCover = async (files) => {
+    const file = files.filter((x) => /^image\//.test(x.type))[0];
+    if (!file) return;
+    err.textContent = ""; coverProg.textContent = "Uploading cover photo to Google Drive…";
+    try { const nu = await uploadOne(file, "cover"); if (cover) removed.push(cover); cover = nu; coverProg.textContent = "Cover photo ready. Remember to save."; drawCover(); }
+    catch (x) { coverProg.textContent = ""; err.textContent = errText(x); }
+  };
+  const drawCover = () => {
+    coverCap.value = (cover && cover.caption) || "";
+    coverBox.replaceChildren(...[cover
+      ? h("div", { class: "adm-cover__pic" }, h("img", { src: cover.url, alt: "Cover photo" }), h("span", { class: "adm-badge adm-badge--owner adm-img__cover", text: "Preview · shown first" }))
+      : h("div", { class: "adm-cover__empty" }, h("b", { text: "No cover photo yet" }), h("span", { class: "adm-hint", text: "This is the image people see first: on project cards, the home page showcase, shared links and the top of the project page." })),
+    cover ? coverCap : null,
+    dropZone(cover ? "Replace cover photo" : "Upload cover photo", "One landscape photo works best (at least 1600 px wide).", false, setCover),
+    cover ? h("div", { class: "adm-actions" }, btn("Move cover to additional photos", "btn--line btn--sm btn--plain", () => { images.unshift(cover); cover = null; drawCover(); drawImgs(); }), btn("Remove cover", "btn--danger btn--sm btn--plain", () => { removed.push(cover); cover = null; drawCover(); })) : null,
+    coverProg].filter(Boolean));
+  };
+
+  /* additional photos: the project gallery */
   const imgGrid = h("div", { class: "adm-imgs" });
   const drawImgs = () => {
     imgGrid.replaceChildren(...images.map((im, i) => {
@@ -347,49 +429,39 @@ function projectEditor(p) {
       cap.addEventListener("input", () => { im.caption = cap.value; });
       const move = (d) => { const j = i + d; if (j < 0 || j >= images.length) return; [images[i], images[j]] = [images[j], images[i]]; drawImgs(); };
       return h("div", { class: "adm-img" },
-        h("div", { class: "adm-img__pic" }, h("img", { src: im.thumb || im.url, alt: "" }), i === 0 ? h("span", { class: "adm-badge adm-badge--owner adm-img__cover", text: "Cover" }) : null, im.progress !== undefined && im.progress < 1 ? h("div", { class: "adm-progress" }, h("span", { style: null })) : null),
+        h("div", { class: "adm-img__pic" }, h("img", { src: im.thumb || im.url, alt: "" }), h("span", { class: "adm-badge adm-img__cover", text: String(i + 1) })),
         cap,
         h("div", { class: "adm-img__tools" },
           h("button", { type: "button", disabled: i === 0 ? true : null, onClick: () => move(-1), "aria-label": "Move photo earlier" }, "←"),
-          h("button", { type: "button", disabled: i === 0 ? true : null, onClick: () => { images.unshift(images.splice(i, 1)[0]); drawImgs(); } }, "Cover"),
+          h("button", { type: "button", title: "Make this the cover photo", onClick: () => { const nu = images.splice(i, 1)[0]; if (cover) images.unshift(cover); cover = nu; drawCover(); drawImgs(); } }, "Set as cover"),
           h("button", { type: "button", disabled: i === images.length - 1 ? true : null, onClick: () => move(1), "aria-label": "Move photo later" }, "→"),
           h("button", { type: "button", class: "adm-danger", onClick: () => { removed.push(images.splice(i, 1)[0]); drawImgs(); } }, "Remove")));
     }));
+    photoCount.textContent = images.length ? images.length + " additional photo" + (images.length === 1 ? "" : "s") : "No additional photos yet.";
   };
-  const removed = [];
+  const photoCount = h("p", { class: "adm-hint" });
   const prog = h("p", { class: "adm-hint", "aria-live": "polite" });
-  const fileIn = h("input", { type: "file", accept: "image/jpeg,image/png,image/webp", multiple: true, "aria-label": "Add photos" });
-  const drop = h("label", { class: "adm-drop" }, icon("upload"), h("b", { text: "Add photos" }), h("span", { class: "adm-hint", text: "Drop images here or click to choose. They’re compressed automatically and saved to the studio’s Google Drive." }), fileIn);
   const addFiles = async (files) => {
-    const list = Array.from(files).filter((x) => /^image\//.test(x.type));
+    const list = files.filter((x) => /^image\//.test(x.type)).slice(0, Math.max(0, 60 - images.length));
     for (let k = 0; k < list.length; k++) {
-      const file = list[k];
-      prog.textContent = `Processing photo ${k + 1} of ${list.length}…`;
-      try {
-        const big = await webp(file, 1800, 0.82);
-        prog.textContent = `Uploading photo ${k + 1} of ${list.length} to Google Drive…`;
-        const up = await driveUpload(big.blob, "project", id, f.slug.value || f.title.value);
-        if (!okDriveUrl(up.url)) throw new Error("Upload returned an unexpected address.");
-        images.push({ id: up.id, url: up.url, thumb: up.thumb, w: big.w, h: big.h, caption: "", name: String(file.name || "").slice(0, 200), bytes: big.blob.size, uploadedAt: Date.now(), uploadedBy: S.user.uid });
-        log("photo.upload", f.title.value || id, (file.name || "photo") + " → Drive " + up.id);
-        drawImgs();
-      } catch (x) { err.textContent = errText(x); }
+      prog.textContent = `Uploading photo ${k + 1} of ${list.length} to Google Drive…`;
+      try { images.push(await uploadOne(list[k], "photo")); drawImgs(); }
+      catch (x) { err.textContent = errText(x); }
     }
-    prog.textContent = list.length ? "Photos added. Remember to save." : "";
-    fileIn.value = "";
+    prog.textContent = list.length ? "Photos added. Remember to save." : (images.length >= 60 ? "A project can have up to 60 additional photos." : "");
   };
-  fileIn.addEventListener("change", () => addFiles(fileIn.files));
-  drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("is-over"); });
-  drop.addEventListener("dragleave", () => drop.classList.remove("is-over"));
-  drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("is-over"); addFiles(e.dataTransfer.files); });
+  const drop = dropZone("Add more photos", "Drop several images here or click to choose. They’re compressed automatically and saved to the studio’s Google Drive.", true, addFiles);
+  drawCover();
   drawImgs();
 
+  const pack = (im) => ({ id: im.id || "", url: im.url, thumb: im.thumb || im.url, w: im.w || 1600, h: im.h || 1200, caption: (im.caption || "").trim().slice(0, 120), name: im.name || null, bytes: im.bytes || null, uploadedAt: im.uploadedAt || null, uploadedBy: im.uploadedBy || null });
   const save = async () => {
     err.textContent = "";
     const title = f.title.value.trim();
     if (title.length < 2) { err.textContent = "Please enter a project title."; f.title.focus(); return; }
     let slug = slugify(f.slug.value || title);
-    if (images.length > 60) { err.textContent = "A project can have up to 60 photos. Please remove a few."; return; }
+    if (images.length > 60) { err.textContent = "A project can have up to 60 additional photos. Please remove a few."; return; }
+    if (!cover && f.status.value === "published" && !f.status.disabled) { err.textContent = "Please add a cover photo before publishing. It’s the image visitors see first."; return; }
     const clash = await dbGet("projects", { orderBy: JSON.stringify("slug"), equalTo: JSON.stringify(slug) }).catch(() => null);
     if (clash && Object.keys(clash).some((k) => k !== id)) slug = slug + "-" + id.slice(-4).toLowerCase().replace(/[^a-z0-9]/g, "x");
     const yr = Number(f.year.value);
@@ -399,7 +471,8 @@ function projectEditor(p) {
       location: f.location.value.trim(), typology: f.typology.value.trim(), scope: f.scope.value.trim(), budget: f.budget.value.trim(),
       summary: f.summary.value.trim(), story: f.story.value.trim(),
       category: Array.from(cats.querySelectorAll("input:checked")).map((c) => c.value),
-      images: images.map((im) => ({ id: im.id || "", url: im.url, thumb: im.thumb || im.url, w: im.w || 1600, h: im.h || 1200, caption: (im.caption || "").trim().slice(0, 120), name: im.name || null, bytes: im.bytes || null, uploadedAt: im.uploadedAt || null, uploadedBy: im.uploadedBy || null })),
+      cover: cover ? pack(cover) : null,
+      images: images.map(pack),
       featured: f.featured.checked, order: Math.max(-100000, Math.min(100000, Number(f.order.value) || 0)),
       status: f.status.disabled ? data.status : f.status.value,
       updatedAt: NOW, updatedBy: S.user.uid, updatedByName: (S.profile.name || S.user.email).slice(0, 120)
@@ -410,7 +483,7 @@ function projectEditor(p) {
     out.publishedAt = out.status === "published" ? (data.status === "published" && data.publishedAt ? data.publishedAt : NOW) : (data.publishedAt || null);
     try {
       await dbPut("projects/" + id, out);
-      log(isNew ? "project.create" : "project.update", title, "Status: " + out.status + " · " + out.images.length + " photos" + (removed.length ? " · " + removed.length + " removed" : ""));
+      log(isNew ? "project.create" : "project.update", title, "Status: " + out.status + " · " + (cover ? "cover + " : "no cover · ") + out.images.length + " more photos" + (removed.length ? " · " + removed.length + " removed" : ""));
       if (can.publish()) for (const im of removed) { await driveDelete(im.id); log("photo.delete", title, "Drive " + (im.id || "?")); }
       toast(out.status === "published" ? "Saved and live on the website" : "Saved");
       S.view = "projects"; render();
@@ -420,8 +493,9 @@ function projectEditor(p) {
     if (!confirm("Delete “" + (data.title || "this project") + "” and its photos permanently? This cannot be undone.")) return;
     try {
       await dbDel("projects/" + id);
-      log("project.delete", data.title || id, images.concat(removed).length + " photos moved to Drive bin");
-      for (const im of images.concat(removed)) await driveDelete(im.id);
+      const all = images.concat(removed, cover ? [cover] : []);
+      log("project.delete", data.title || id, all.length + " photos moved to Drive bin");
+      for (const im of all) await driveDelete(im.id);
       toast("Project deleted"); S.view = "projects"; render();
     } catch (x) { err.textContent = errText(x); }
   };
@@ -439,7 +513,8 @@ function projectEditor(p) {
         h("section", { class: "adm-panel" }, h("h2", { text: "Story" }),
           field("p-sum", "Short summary (one or two sentences, shown on cards)", f.summary),
           field("p-story", "Full story (leave an empty line between paragraphs)", f.story)),
-        h("section", { class: "adm-panel" }, h("h2", { text: "Photos" }), h("p", { text: "The first photo is the cover. Add captions so visitors know what they’re looking at." }), drop, prog, imgGrid)),
+        h("section", { class: "adm-panel" }, h("h2", { text: "Cover photo (preview)" }), h("p", { text: "The main image of the project, always shown first." }), coverBox),
+        h("section", { class: "adm-panel" }, h("h2", { text: "Additional photos" }), h("p", { text: "The project gallery, shown after the cover. Drag in as many as you like (up to 60), reorder them with the arrows and add captions." }), drop, prog, photoCount, imgGrid)),
       h("div", { class: "adm-editor__side" },
         h("section", { class: "adm-panel" }, h("h2", { text: "Publishing" }),
           field("p-status", "Status", f.status),
@@ -579,10 +654,11 @@ async function teamView(main) {
         const sel = h("select", { "aria-label": "Role for " + (u.name || u.email) }, assignable().map((r) => h("option", { value: r, selected: u.role === r ? true : null }, cap(r))));
         sel.addEventListener("change", async () => { try { await dbPatch("users/" + u.id, Object.assign({ role: sel.value }, stamp())); log("team.role", u.email, cap(u.role) + " → " + cap(sel.value)); toast("Role updated"); loadTeam(); } catch (x) { toast(errText(x)); } });
         return h("div", { class: "adm-row" },
-          h("div", null, h("b", { text: (u.name || "—") + (self ? " (you)" : "") }), h("small", { text: [u.email, u.phone].filter(Boolean).join(" · ") }),
-            h("small", { text: "Last sign-in: " + when(u.lastLogin) + (u.loginCount ? " · " + u.loginCount + " sign-ins" : "") + " · Added " + when(u.createdAt) + (u.createdByName ? " by " + u.createdByName : "") })),
+          h("div", { class: "adm-who" }, avatar(u, "adm-avatar--sm"), h("div", null, h("b", { text: (u.name || "—") + (self ? " (you)" : "") }), h("small", { text: [u.email, u.phone].filter(Boolean).join(" · ") }),
+            h("small", { text: "Last sign-in: " + when(u.lastLogin) + (u.loginCount ? " · " + u.loginCount + " sign-ins" : "") + " · Added " + when(u.createdAt) + (u.createdByName ? " by " + u.createdByName : "") }))),
           h("div", { class: "adm-tools" }, h("span", { class: "adm-badge adm-badge--" + (u.active ? u.role : "off"), text: u.active ? u.role : "deactivated" })),
           !canManage(u) ? h("span") : h("div", { class: "adm-row__actions" }, sel,
+            photoPicker(u.photo ? "Change photo" : "Add photo", async (file) => { toast("Uploading photo…"); try { await setProfilePhoto(u, file); toast("Profile photo saved"); loadTeam(); } catch (x) { toast(errText(x)); } }),
             btn(u.active ? "Deactivate" : "Reactivate", "btn--line btn--sm btn--plain", async () => { try { await dbPatch("users/" + u.id, Object.assign({ active: !u.active }, stamp())); log(u.active ? "team.deactivate" : "team.reactivate", u.email, ""); toast(u.active ? "Access removed" : "Access restored"); loadTeam(); } catch (x) { toast(errText(x)); } }),
             btn("Remove", "btn--danger btn--sm btn--plain", async () => { if (!confirm("Remove " + (u.name || u.email) + " from the team? Their login will stop working.")) return; try { await dbDel("users/" + u.id); log("team.remove", u.email, "Role was " + u.role); toast("Removed"); loadTeam(); } catch (x) { toast(errText(x)); } })));
       }));
@@ -627,6 +703,10 @@ function accountView(main) {
     h("p", null, "Role: ", h("span", { class: "adm-badge adm-badge--" + S.profile.role, text: S.profile.role })),
     h("p", { class: "adm-hint", text: ROLE_INFO[S.profile.role] || "" }),
     h("p", { class: "adm-hint", text: "Last sign-in: " + when(S.profile.lastLogin) + " · Account created " + when(S.profile.createdAt) }),
+    h("div", { class: "adm-actions" }, avatar(S.profile),
+      photoPicker(S.profile.photo ? "Change profile picture" : "Add profile picture", async (file) => { toast("Uploading photo…"); try { await setProfilePhoto(S.profile, file); toast("Profile picture saved"); render(); } catch (x) { toast(errText(x)); } }),
+      S.profile.photo ? btn("Remove picture", "btn--danger btn--sm btn--plain", async () => { try { await clearProfilePhoto(S.profile); toast("Profile picture removed"); render(); } catch (x) { toast(errText(x)); } }) : null),
+    h("p", { class: "adm-hint", text: "Square photos look best. It’s cropped to a circle and saved to the studio’s Google Drive (Others Media)." }),
     h("div", { class: "adm-cols adm-cols--2" }, field("a-name", "Your name", name), field("a-phone", "Phone (optional)", phone)),
     h("div", { class: "adm-actions" },
       btn("Save details", "btn--ink btn--plain", async () => {
